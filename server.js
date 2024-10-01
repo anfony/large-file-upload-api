@@ -32,6 +32,10 @@ const upload = multer({
     storage: multer.memoryStorage(), // Los archivos se almacenan en memoria antes de subir a S3
 });
 
+app.get('/', (req, res) => {
+    res.status(200).send('API funcionando correctamente');
+});
+
 // Ruta de registro
 app.post('/register', (req, res) => {
     const { username, email, password } = req.body;
