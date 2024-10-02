@@ -9,6 +9,7 @@ const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté t
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
 const db = require('./db'); // Conexión a la base de datos
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const allowedOrigins = ['http://localhost:3001', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'];
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,9 +24,16 @@ const s3 = new AWS.S3({
 app.use(express.json()); // Middleware para procesar JSON
 
 app.use(cors({
-    origin: '*',  // Permitir todas las solicitudes desde cualquier origen
+    origin: (origin, callback) => {
+        // Permitir solicitudes sin un origen (e.g. Postman) o desde los orígenes permitidos
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS'));
+        }
+    },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Si es necesario compartir cookies o credenciales
+    credentials: true // Si necesitas compartir cookies o tokens entre dominios
 }));
 
 // Configuración de multer para manejo de archivos en la memoria
@@ -138,26 +146,23 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
 });
 
 // Ruta para eliminar archivos de S3
-app.delete('/files/:fileName', authenticateToken, (req, res) => {
+app.delete('/files/:fileName', authenticateToken, async (req, res) => {
     const fileName = req.params.fileName;
-  
+
     const params = {
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: `uploads/${fileName}`, // El archivo a eliminar debe tener el prefijo 'uploads/'
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `uploads/${fileName}` // La clave del archivo en S3
     };
-  
-    s3.deleteObject(params, (err, data) => {
-      if (err) {
-        console.error("Error eliminando el archivo de S3:", err);
-        return res.status(500).json({ error: 'Error eliminando el archivo' });
-      }
-  
-      res.status(200).json({ message: 'Archivo eliminado con éxito' });
-    });
-  });
-  
-// Ruta para consultar el progreso de subida
-app.get('/upload-progress/:fileName', getUploadProgress);
+
+    try {
+        const deleteCommand = new DeleteObjectCommand(params);
+        await s3.send(deleteCommand);
+        res.status(200).json({ message: 'Archivo eliminado correctamente' });
+    } catch (err) {
+        console.error("Error eliminando el archivo:", err);
+        res.status(500).json({ error: 'Error eliminando el archivo' });
+    }
+});
 
 // Iniciar el servidor
 app.listen(PORT, () => {
