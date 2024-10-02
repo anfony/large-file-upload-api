@@ -23,7 +23,7 @@ const s3 = new AWS.S3({
 app.use(express.json()); // Middleware para procesar JSON
 
 app.use(cors({
-    origin: ['http://localhost:3001', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'],  // Permite ambos orígenes
+    origin: ['http://localhost:3000', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'],  // Permite ambos orígenes
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
 }));
