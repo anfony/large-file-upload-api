@@ -100,8 +100,28 @@ app.get('/dashboard', authenticateToken, (req, res) => {
     res.json({ message: `Bienvenido al dashboard, ${req.user.username}` });
 });
 
-// Ruta protegida para subir archivos
-app.post('/upload', authenticateToken, upload.single('file'), uploadMultipart);
+// // Ruta protegida para subir archivos
+// app.post('/upload', authenticateToken, upload.single('file'), uploadMultipart);
+
+app.get('/generate-upload-url', authenticateToken, async (req, res) => {
+    const { fileName, fileType } = req.query; // El cliente enviará el nombre del archivo y el tipo
+
+    const s3Params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `uploads/${fileName}`, // Nombre del archivo en S3
+        Expires: 60, // URL válida por 60 segundos
+        ContentType: fileType,
+        ACL: 'public-read' // Puedes ajustar esto según las políticas de acceso
+    };
+
+    try {
+        const uploadUrl = s3.getSignedUrl('putObject', s3Params); // Generar la URL prefirmada
+        res.status(200).json({ uploadUrl });
+    } catch (err) {
+        console.error('Error generando URL prefirmada de S3', err);
+        res.status(500).json({ error: 'Error generando URL de subida' });
+    }
+});
 
 // Ruta para obtener el progreso de la subida
 app.get('/upload-progress/:fileName', authenticateToken, getUploadProgress);  // Nueva ruta para obtener el progreso de la subida
@@ -110,6 +130,8 @@ app.get('/upload-progress/:fileName', authenticateToken, getUploadProgress);  //
 app.get('/files', authenticateToken, (req, res) => {
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
+        MaxKeys: 10, // Puedes ajustar el número de archivos por página
+        ContinuationToken: req.query.token // Token de paginación desde el frontend
     };
 
     s3.listObjectsV2(params, (err, data) => {
@@ -117,8 +139,11 @@ app.get('/files', authenticateToken, (req, res) => {
             console.error('Error obteniendo los archivos de S3:', err);
             return res.status(500).json({ error: 'Error obteniendo los archivos' });
         }
-        const fileNames = data.Contents.map(file => file.Key);
-        res.json(fileNames);
+
+        res.json({
+            files: data.Contents.map(file => file.Key),
+            nextToken: data.NextContinuationToken // Enviar el token de la siguiente página
+        });
     });
 });
 
@@ -143,23 +168,31 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
 });
 
 // Ruta para eliminar archivos de S3
-app.delete('/files/:fileName', authenticateToken, (req, res) => {
+app.delete('/files/:fileName', authenticateToken, async (req, res) => {
     const fileName = req.params.fileName;
 
     // Asegúrate de agregar el prefijo 'uploads/' al nombre del archivo.
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}`  // Verifica si 'uploads/' es el prefijo correcto.
+        Key: `uploads/${fileName}` // Verifica si 'uploads/' es el prefijo correcto.
     };
 
-    s3.deleteObject(params, (err, data) => {
-        if (err) {
-            console.error("Error eliminando el archivo de S3:", err);
-            return res.status(500).json({ error: 'Error eliminando el archivo' });
-        }
+    // Verificar si el archivo existe
+    try {
+        await s3.headObject(params).promise(); // Verifica si el archivo existe
+    } catch (err) {
+        console.error("El archivo no existe en S3:", err.message);
+        return res.status(404).json({ error: 'El archivo no existe' });
+    }
 
+    // Eliminar el archivo si existe
+    try {
+        await s3.deleteObject(params).promise();
         res.status(200).json({ message: 'Archivo eliminado con éxito' });
-    });
+    } catch (err) {
+        console.error("Error eliminando el archivo de S3:", err.message);
+        res.status(500).json({ error: 'Error eliminando el archivo' });
+    }
 });
 
 // Iniciar el servidor
