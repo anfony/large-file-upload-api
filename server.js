@@ -5,11 +5,10 @@ const AWS = require('aws-sdk');
 const cors = require('cors'); // Importar el paquete cors
 const multer = require('multer'); // Importar multer para manejar archivos
 const jwt = require('jsonwebtoken');
-const { uploadMultipart, getUploadProgress } = require('./uploadFile');
+const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
 const db = require('./db'); // Conexión a la base de datos
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
-const allowedOrigins = ['http://localhost:3001', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'];
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,16 +23,9 @@ const s3 = new AWS.S3({
 app.use(express.json()); // Middleware para procesar JSON
 
 app.use(cors({
-    origin: (origin, callback) => {
-        // Permitir solicitudes sin un origen (e.g. Postman) o desde los orígenes permitidos
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('No permitido por CORS'));
-        }
-    },
+    origin: '*',  // Permitir todas las solicitudes desde cualquier origen
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true // Si necesitas compartir cookies o tokens entre dominios
+    credentials: true, // Si es necesario compartir cookies o credenciales
 }));
 
 // Configuración de multer para manejo de archivos en la memoria
@@ -163,9 +155,6 @@ app.delete('/files/:fileName', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Error eliminando el archivo' });
     }
 });
-
-// Endpoint para consultar el progreso de la subida
-app.get('/upload-progress/:fileName', getUploadProgress);
 
 // Iniciar el servidor
 app.listen(PORT, () => {
