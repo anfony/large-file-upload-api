@@ -50,20 +50,8 @@ large-file-upload-api/
 
 ## Variables de entorno
 
-Si deseas ejecutar este proyecto localmente, necesitarás configurar un archivo `.env` en la raíz del proyecto con las siguientes variables:
-
-```plaintext
-AWS_ACCESS_KEY_ID=AKIAYHJANGG4KJS7XNFL
-AWS_BUCKET_NAME=filesupload-test
-AWS_REGION=us-east-2
-AWS_SECRET_ACCESS_KEY=BDunRg3Yj9aIi3hNCULjZA4Oru04hdDyYtcyqRxM
-DB_HOST=databaseupdatefiles.chwgy4omkb40.us-east-2.rds.amazonaws.com
-DB_NAME=databaseupdatefiles
-DB_PASSWORD=C84cdd5f30
-DB_PORT=3306
-DB_USER=admin
-JWT_SECRET=40Ad796277aI3hNCULjZAOru04hdDyYtcyqRxM
-```
+Si deseas ejecutar este proyecto localmente, necesitarás configurar un archivo `.env` el cual puedes solicitarme y te haré llegar inmediatamente
+sólo deberás pegarlo en la raíz del proyecto y listo.
 
 Instrucciones para Ejecutar el Proyecto
 
