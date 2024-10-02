@@ -121,24 +121,21 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
     const fileName = req.params.fileName;
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}`
+        Key: `uploads/${fileName}`,
+        Expires: 60  // La URL prefirmada expirará en 60 segundos
     };
 
-    // Iniciar la descarga como un stream desde S3
-    const fileStream = s3.getObject(params).createReadStream();
-
-    // Establecer los encabezados para la descarga
-    fileStream.on('error', (err) => {
-        console.error('Error descargando el archivo desde S3', err);
-        return res.status(500).json({ error: 'Error descargando el archivo' });
+    // Generar URL prefirmada para la descarga directa desde S3
+    s3.getSignedUrl('getObject', params, (err, url) => {
+        if (err) {
+            console.error('Error generando URL prefirmada de S3', err);
+            return res.status(500).json({ error: 'Error generando URL de descarga' });
+        }
+        // Enviar la URL prefirmada de vuelta al cliente
+        res.json({ url });
     });
-
-    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-    res.setHeader('Content-Type', 'application/octet-stream');
-
-    // Stream el archivo directamente al cliente
-    fileStream.pipe(res);
 });
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
