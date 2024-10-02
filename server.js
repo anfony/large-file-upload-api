@@ -22,9 +22,9 @@ const s3 = new AWS.S3({
 app.use(express.json()); // Middleware para procesar JSON
 
 app.use(cors({
-    origin: 'http://localhost:3001', // Especifica el origen permitido
+    origin: '*',  // Permitir todas las solicitudes desde cualquier origen
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Si se necesita compartir cookies
+    credentials: true, // Si es necesario compartir cookies o credenciales
 }));
 
 // Configuración de multer para manejo de archivos en la memoria
