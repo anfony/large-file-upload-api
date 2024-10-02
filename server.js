@@ -116,6 +116,7 @@ app.get('/files', authenticateToken, (req, res) => {
     });
 });
 
+// Ruta para descargar archivos
 app.get('/download/:fileName', authenticateToken, (req, res) => {
     const fileName = req.params.fileName;
     const params = {
@@ -127,15 +128,16 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
         if (err) {
             console.error(err);
             return res.status(404).json({ error: 'Archivo no encontrado' });
-        }        // Asegúrate de establecer el tipo MIME correcto (esto es solo un ejemplo)
+        }
+
+        // Establecer el tipo MIME y encabezados de descarga
         res.setHeader('Content-Type', data.ContentType || 'application/octet-stream');
         res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        res.send(data.Body);
-        res.attachment(fileName);
-        res.send(data.Body);
+        
+        // Enviar el archivo como respuesta
+        res.send(data.Body);  // Solo enviar una vez
     });
 });
-
 
 // Iniciar el servidor
 app.listen(PORT, () => {
