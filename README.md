@@ -1,12 +1,15 @@
-Large File Upload API
+# Large File Upload API
+
 Este proyecto permite la carga eficiente de archivos grandes (más de 1 GB) a un bucket de S3 de Amazon Web Services (AWS) a través de una API en Node.js con un frontend en React.
 
-Estructura del Proyecto
+## Estructura del Proyecto
+
 El proyecto está dividido en dos partes principales:
 
-Backend (API en Node.js): Aquí se encuentran los archivos que configuran el servidor, las rutas de subida, descarga, eliminación y gestión de los archivos en el bucket de S3.
-Frontend (React): Contiene el código del frontend para el cliente que interactúa con la API para subir y descargar archivos grandes.
-Estructura de carpetas:
+- **Backend (API en Node.js)**: Aquí se encuentran los archivos que configuran el servidor, las rutas de subida, descarga, eliminación y gestión de los archivos en el bucket de S3.
+- **Frontend (React)**: Contiene el código del frontend para el cliente que interactúa con la API para subir y descargar archivos grandes.
+
+### Estructura de carpetas:
 
 large-file-upload-api/
 │
@@ -27,19 +30,25 @@ large-file-upload-api/
 ├── README.md           # Documentación del proyecto
 └── ...
 
-Funcionalidades
-Subir archivos grandes (>1GB): Utiliza multipart upload para manejar archivos grandes en Amazon S3.
-Descargar archivos: Los usuarios pueden descargar archivos directamente desde el bucket de S3 a través de una URL prefirmada.
-Eliminar archivos: Permite a los usuarios eliminar archivos del bucket de S3.
-Ver progreso de subida: El frontend muestra una barra de progreso de la subida en tiempo real.
-Login de usuario: Los usuarios deben estar autenticados para interactuar con la API. El login utiliza JWT (JSON Web Token) para la autenticación.
-Prerrequisitos
-Tener instalado Node.js en tu sistema.
-Tener una cuenta en AWS y un bucket de S3 configurado.
-Tener una base de datos MySQL o RDS configurada.
-Variables de entorno
-Si deseas ejecutar este proyecto localmente, necesitarás configurar un archivo .env en la raíz del proyecto con las siguientes variables:
+## Funcionalidades
 
+- **Subir archivos grandes (>1GB)**: Utiliza multipart upload para manejar archivos grandes en Amazon S3.
+- **Descargar archivos**: Los usuarios pueden descargar archivos directamente desde el bucket de S3 a través de una URL prefirmada.
+- **Eliminar archivos**: Permite a los usuarios eliminar archivos del bucket de S3.
+- **Ver progreso de subida**: El frontend muestra una barra de progreso de la subida en tiempo real.
+- **Login de usuario**: Los usuarios deben estar autenticados para interactuar con la API. El login utiliza JWT (JSON Web Token) para la autenticación.
+
+## Prerrequisitos
+
+- Tener instalado Node.js en tu sistema.
+- Tener una cuenta en AWS y un bucket de S3 configurado.
+- Tener una base de datos MySQL o RDS configurada.
+
+## Variables de entorno
+
+Si deseas ejecutar este proyecto localmente, necesitarás configurar un archivo `.env` en la raíz del proyecto con las siguientes variables:
+
+```plaintext
 AWS_ACCESS_KEY_ID=AKIAYHJANGG4KJS7XNFL
 AWS_BUCKET_NAME=filesupload-test
 AWS_REGION=us-east-2
@@ -50,6 +59,7 @@ DB_PASSWORD=C84cdd5f30
 DB_PORT=3306
 DB_USER=admin
 JWT_SECRET=40Ad796277aI3hNCULjZAOru04hdDyYtcyqRxM
+
 
 Instrucciones para Ejecutar el Proyecto
 
