@@ -114,6 +114,7 @@ app.get('/files', authenticateToken, (req, res) => {
 
     s3.listObjectsV2(params, (err, data) => {
         if (err) {
+            console.error('Error obteniendo los archivos de S3:', err);
             return res.status(500).json({ error: 'Error obteniendo los archivos' });
         }
         const fileNames = data.Contents.map(file => file.Key);
