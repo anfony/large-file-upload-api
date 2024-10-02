@@ -1,13 +1,9 @@
-require('dotenv').config(); // Cargar variables de entorno
+require('dotenv').config();
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
-const cors = require('cors'); // Importar el paquete cors
-const multer = require('multer'); // Importar multer para manejar archivos
+const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
-const db = require('./db'); // Conexión a la base de datos
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,89 +15,41 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION,
 });
 
-app.use(express.json()); // Middleware para procesar JSON
-
+app.use(express.json());
 app.use(cors({
-    origin: '*',  // Permitir todas las solicitudes desde cualquier origen
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Si es necesario compartir cookies o credenciales
+    credentials: true,
 }));
 
-// Configuración de multer para manejo de archivos en la memoria
-const upload = multer({
-    storage: multer.memoryStorage(), // Los archivos se almacenan en memoria antes de subir a S3
-});
+// Ruta para generar URL presignada para subir archivos
+app.post('/generatePresignedUrl', authenticateToken, (req, res) => {
+    const { fileName, fileType } = req.body;
 
-app.get('/', (req, res) => {
-    res.status(200).send('API funcionando correctamente');
-});
+    if (!fileName || !fileType) {
+        return res.status(400).json({ error: "Faltan parámetros: fileName o fileType." });
+    }
 
-// Ruta de registro
-app.post('/register', (req, res) => {
-    const { username, email, password } = req.body;
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `uploads/${fileName}`,  // Guardar en la carpeta uploads
+        Expires: 60 * 5,  // URL válida por 5 minutos
+        ContentType: fileType,
+        ACL: 'public-read'  // Dar permisos de lectura pública, opcional según tu configuración
+    };
 
-    // Encriptar la contraseña
-    bcrypt.hash(password, 10, (err, hashedPassword) => {
+    // Generar URL presignada
+    s3.getSignedUrl('putObject', params, (err, url) => {
         if (err) {
-            return res.status(500).json({ error: 'Error encriptando la contraseña' });
+            console.error("Error generando la URL presignada:", err);
+            return res.status(500).json({ error: "Error generando la URL presignada." });
         }
 
-        // Insertar el usuario en la base de datos
-        const query = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
-        db.query(query, [username, email, hashedPassword], (err, result) => {
-            if (err) {
-                return res.status(500).json({ error: 'Error al registrar el usuario' });
-            }
-            res.status(201).json({ message: 'Usuario registrado exitosamente' });
-        });
+        res.json({ presignedUrl: url, url: `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/uploads/${fileName}` });
     });
 });
 
-// Ruta de login
-app.post('/login', (req, res) => {
-    const { email, password } = req.body;
-
-    // Verificar si el usuario existe en la base de datos
-    const query = 'SELECT * FROM users WHERE email = ?';
-    db.query(query, [email], (err, results) => {
-        if (err) {
-            return res.status(500).json({ error: 'Error en la base de datos' });
-        }
-
-        if (results.length === 0) {
-            return res.status(401).json({ error: 'Usuario no encontrado' });
-        }
-
-        const user = results[0];
-
-        // Comparar la contraseña con la encriptada
-        bcrypt.compare(password, user.password, (err, isMatch) => {
-            if (err) {
-                return res.status(500).json({ error: 'Error verificando la contraseña' });
-            }
-
-            if (!isMatch) {
-                return res.status(401).json({ error: 'Contraseña incorrecta' });
-            }
-
-            // Generar token JWT
-            const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-            res.json({ message: 'Login exitoso', token });
-        });
-    });
-});
-
-// Ruta protegida (ejemplo)
-app.get('/dashboard', authenticateToken, (req, res) => {
-    res.json({ message: `Bienvenido al dashboard, ${req.user.username}` });
-});
-
-// Ruta protegida para subir archivos
-// Se usa 'upload.single('file')' para manejar un archivo a la vez
-app.post('/upload', authenticateToken, upload.single('file'), uploadMultipart);
-
-// Ruta para obtener la lista de archivos en S3
+// Ruta protegida para listar archivos en S3
 app.get('/files', authenticateToken, (req, res) => {
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
@@ -116,28 +64,26 @@ app.get('/files', authenticateToken, (req, res) => {
     });
 });
 
-// Ruta para descargar archivos
+// Ruta para descargar archivos desde S3
 app.get('/download/:fileName', authenticateToken, (req, res) => {
     const fileName = req.params.fileName;
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}`,
-        Expires: 60  // La URL prefirmada expirará en 60 segundos
+        Key: `uploads/${fileName}`
     };
 
-    // Generar URL prefirmada para la descarga directa desde S3
-    s3.getSignedUrl('getObject', params, (err, url) => {
+    s3.getObject(params, (err, data) => {
         if (err) {
-            console.error('Error generando URL prefirmada de S3', err);
-            return res.status(500).json({ error: 'Error generando URL de descarga' });
+            console.error(err);
+            return res.status(404).json({ error: 'Archivo no encontrado' });
         }
-        // Enviar la URL prefirmada de vuelta al cliente
-        res.json({ url });
+
+        res.setHeader('Content-Type', data.ContentType || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+        res.send(data.Body);
     });
 });
 
-
-// Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
