@@ -69,27 +69,37 @@ Backend
 ```plaintext git clone https://github.com/tu_usuario/large-file-upload-api.git ```
 
 2. Navega al directorio raíz del proyecto:
-```plaintextcd large-file-upload-api ```
+```plaintextcd
+large-file-upload-api ```
 
-3. Instala las dependencias del backend:
-```plaintext npm install ```
+4. Instala las dependencias del backend:
+```plaintext npm install
+```
 
-4. (Opcional) Crea un archivo .env en la raíz con las variables de entorno descritas anteriormente si deseas ejecutar el backend localmente.
+5. (Opcional) Crea un archivo .env en la raíz con las variables de entorno descritas anteriormente si deseas ejecutar el backend localmente.
 
-5. Inicia el servidor:
-```plaintext node server.js ```
+6. Inicia el servidor:
+```plaintext
+node server.js
+```
 El backend se ejecutará en http://localhost:3000.
 
 Frontend
 
 1. Una vez que el backend esté corriendo, navega a la carpeta frontend:
-```plaintext cd frontend ```
+```plaintext
+cd frontend
+```
 
-2. Instala las dependencias del frontend:
-```plaintext npm install ```
+3. Instala las dependencias del frontend:
+```plaintext
+npm install
+```
 
-3. Inicia el servidor del frontend:
-```plaintext npm start ```
+5. Inicia el servidor del frontend:
+```plaintext
+npm start
+```
 Esto abrirá una ventana del navegador en http://localhost:3001, donde puedes probar el login, subir archivos, descargarlos y eliminarlos.
 
 Tecnologías Utilizadas
