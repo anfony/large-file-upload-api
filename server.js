@@ -5,7 +5,7 @@ const AWS = require('aws-sdk');
 const cors = require('cors'); // Importar el paquete cors
 const multer = require('multer'); // Importar multer para manejar archivos
 const jwt = require('jsonwebtoken');
-const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
+const { uploadMultipart, getUploadProgress } = require('./uploadFile');
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
 const db = require('./db'); // Conexión a la base de datos
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
@@ -163,6 +163,9 @@ app.delete('/files/:fileName', authenticateToken, async (req, res) => {
         res.status(500).json({ error: 'Error eliminando el archivo' });
     }
 });
+
+// Endpoint para consultar el progreso de la subida
+app.get('/upload-progress/:fileName', getUploadProgress);
 
 // Iniciar el servidor
 app.listen(PORT, () => {
