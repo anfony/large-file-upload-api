@@ -95,7 +95,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// Ruta protegida (ejemplo)
 app.get('/dashboard', authenticateToken, (req, res) => {
     res.json({ message: `Bienvenido al dashboard, ${req.user.username}` });
 });
