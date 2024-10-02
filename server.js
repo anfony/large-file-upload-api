@@ -121,7 +121,7 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
     const fileName = req.params.fileName;
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}`
+        Key: `${fileName}`
     };
 
     s3.getObject(params, (err, data) => {
