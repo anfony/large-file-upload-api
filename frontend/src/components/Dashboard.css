@@ -1,0 +1,104 @@
+/* Hacer el contenedor de la barra de navegación responsivo */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  font-size: 18px;
+}
+
+/* Contenedor del dashboard */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.content {
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Sección de subida de archivo */
+.upload-section {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;  /* Para que se ajuste en pantallas más pequeñas */
+  margin-bottom: 20px;
+}
+
+/* Botón de subida */
+.upload-btn {
+  background-color: green;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.upload-btn:hover {
+  background-color: #28a745;
+}
+
+/* Tabla de archivos */
+.files-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.files-table th, .files-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.files-table th {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Estilos para el botón de cerrar sesión */
+.logout-btn {
+  background-color: #ff4b4b;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background-color: #ff6666;
+}
+
+/* Medios de consulta (Media Queries) para pantallas pequeñas */
+@media screen and (max-width: 768px) {
+  .navbar {
+    flex-direction: column; /* Cambia a diseño vertical en pantallas pequeñas */
+    text-align: center;
+  }
+
+  .upload-section {
+    flex-direction: column; /* Alineación vertical para la sección de subida */
+    align-items: center;
+  }
+
+  .files-table {
+    font-size: 14px;
+  }
+
+  .files-table th, .files-table td {
+    padding: 8px;
+  }
+
+  /* Ajustar el botón de cerrar sesión */
+  .logout-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+  }
+}
