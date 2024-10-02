@@ -66,25 +66,25 @@ Instrucciones para Ejecutar el Proyecto
 Backend
 
 1. Clona el repositorio en tu máquina local.
-2. 
+
 ```plaintext
 git clone https://github.com/tu_usuario/large-file-upload-api.git
 ```
 
-4. Navega al directorio raíz del proyecto:
+2. Navega al directorio raíz del proyecto:
    
 ```plaintextcd
 large-file-upload-api
 ```
 
-4. Instala las dependencias del backend:
+3. Instala las dependencias del backend:
 ```plaintext
 npm install
 ```
 
-5. (Opcional) Crea un archivo .env en la raíz con las variables de entorno descritas anteriormente si deseas ejecutar el backend localmente.
+4. (Opcional) Crea un archivo .env en la raíz con las variables de entorno descritas anteriormente si deseas ejecutar el backend localmente.
 
-6. Inicia el servidor:
+5. Inicia el servidor:
 ```plaintext
 node server.js
 ```
@@ -97,12 +97,12 @@ Frontend
 cd frontend
 ```
 
-3. Instala las dependencias del frontend:
+2. Instala las dependencias del frontend:
 ```plaintext
 npm install
 ```
 
-5. Inicia el servidor del frontend:
+3. Inicia el servidor del frontend:
 ```plaintext
 npm start
 ```
