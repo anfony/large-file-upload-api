@@ -3,17 +3,61 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 10px 20px;
   background-color: #007bff;
   color: white;
-  padding: 10px;
   font-size: 18px;
 }
 
+.navbar h2 {
+  margin: 0;
+}
 /* Contenedor del dashboard */
 .dashboard-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 10px; /* Espacio entre los botones */
+}
+.toggle-url-btn {
+  background-color: #2196F3;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  margin-left: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.info-icon {
+  margin-left: 5px;
+  font-size: 16px;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  top: -5px;
+  right: -50px;
+  width: 180px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.toggle-url-btn:hover .tooltip {
+  display: block;
 }
 
 .content {
@@ -74,6 +118,24 @@
 
 .logout-btn:hover {
   background-color: #ff6666;
+}
+
+/* Barra de progreso */
+.progress-bar-container {
+  width: 100%;
+  background-color: #f3f3f3;
+  border-radius: 5px;
+  margin-top: 10px;
+  height: 20px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 5px;
+  text-align: center;
+  color: white;
+  line-height: 20px;
 }
 
 /* Medios de consulta (Media Queries) para pantallas pequeñas */

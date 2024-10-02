@@ -156,6 +156,8 @@ app.delete('/files/:fileName', authenticateToken, (req, res) => {
     });
   });
   
+// Ruta para consultar el progreso de subida
+app.get('/upload-progress/:fileName', getUploadProgress);
 
 // Iniciar el servidor
 app.listen(PORT, () => {

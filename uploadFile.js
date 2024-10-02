@@ -2,6 +2,9 @@ require('dotenv').config();
 const { S3Client, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand } = require('@aws-sdk/client-s3');
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 
+// Objeto para almacenar el progreso de subida de cada archivo
+const uploadProgress = {};
+
 // Crear el cliente S3
 const s3 = new S3Client({
     region: process.env.AWS_REGION,
@@ -18,8 +21,7 @@ const s3 = new S3Client({
 // Función de subida
 const uploadMultipart = async (req, res) => {
     try {
-        // Obtener el archivo desde el formulario (req.file) y asignar su buffer
-        const file = req.file; 
+        const file = req.file;
         const fileName = file.originalname;
 
         if (!file) {
@@ -42,6 +44,9 @@ const uploadMultipart = async (req, res) => {
         let uploadQueue = [];
         const MAX_CONCURRENT_UPLOADS = 20;  // Limitar el número de subidas simultáneas
 
+        // Inicializar el progreso de subida a 0%
+        uploadProgress[fileName] = { totalParts: 0, uploadedParts: 0 };
+
         const uploadNextPart = async (chunk, currentPartNumber) => {
             const partParams = {
                 Bucket: process.env.AWS_BUCKET_NAME,
@@ -58,6 +63,9 @@ const uploadMultipart = async (req, res) => {
                         PartNumber: currentPartNumber,
                         ETag: uploadedPart.ETag
                     });
+
+                    // Actualizar el progreso en uploadProgress
+                    uploadProgress[fileName].uploadedParts++;
                 })
                 .catch((err) => {
                     console.error(`Error subiendo la parte ${currentPartNumber}:`, err);
@@ -65,10 +73,13 @@ const uploadMultipart = async (req, res) => {
                 });
         };
 
-        // Aquí debes crear un stream o usar un buffer para dividir el archivo en chunks
+        // Dividir el archivo en chunks y realizar las subidas de partes
         const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB
         const fileBuffer = Buffer.from(file.buffer);
         const totalParts = Math.ceil(fileBuffer.length / CHUNK_SIZE);
+        
+        // Actualizar el total de partes
+        uploadProgress[fileName].totalParts = totalParts;
 
         for (let i = 0; i < totalParts; i++) {
             const chunk = fileBuffer.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
@@ -104,7 +115,10 @@ const uploadMultipart = async (req, res) => {
         const completeMultipartUploadCommand = new CompleteMultipartUploadCommand(completeParams);
         await s3.send(completeMultipartUploadCommand);
         console.log("Subida completada con éxito.");
-        res.status(200).send("Subida completada con éxito.");
+
+        // Eliminar el progreso una vez que la subida esté completa
+        delete uploadProgress[fileName];
+        res.status(200).send({ message: "Subida completada con éxito." });
 
     } catch (err) {
         console.error("Error subiendo el archivo:", err);
@@ -112,5 +126,20 @@ const uploadMultipart = async (req, res) => {
     }
 };
 
-// Exportar la función de subida
-module.exports = uploadMultipart;
+// Nueva ruta para obtener el progreso de subida
+const getUploadProgress = (req, res) => {
+    const fileName = req.params.fileName;
+    if (!uploadProgress[fileName]) {
+        return res.status(404).send("No hay progreso de subida para este archivo.");
+    }
+
+    const { totalParts, uploadedParts } = uploadProgress[fileName];
+    const progressPercentage = Math.round((uploadedParts / totalParts) * 100);
+    res.json({ progress: progressPercentage });
+};
+
+// Exportar las funciones
+module.exports = {
+    uploadMultipart,
+    getUploadProgress
+};

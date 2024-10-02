@@ -8,12 +8,14 @@ const Dashboard = ({ token, handleLogout }) => {
   const [file, setFile] = useState(null);
   const [username, setUsername] = useState(''); // Almacenar el nombre del usuario
   const [baseURL, setBaseURL] = useState('https://serverfileslarges-9cfb943831a0.herokuapp.com'); // Estado de URL base
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false); // Estado para verificar si se está subiendo un archivo
 
   // Cambiar entre URLs de producción y local
   const toggleURL = () => {
-    setBaseURL((prevURL) => 
-      prevURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com' 
-        ? 'http://localhost:3000' 
+    setBaseURL((prevURL) =>
+      prevURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com'
+        ? 'http://localhost:3000'
         : 'https://serverfileslarges-9cfb943831a0.herokuapp.com'
     );
   };
@@ -34,8 +36,33 @@ const Dashboard = ({ token, handleLogout }) => {
       });
       setFiles(response.data);
     } catch (error) {
-      console.error("Error obteniendo los archivos", error);
+      console.error('Error obteniendo los archivos', error);
     }
+  };
+
+  // Función para hacer polling y obtener el progreso del backend
+  const pollUploadProgress = async (fileName) => {
+    const intervalId = setInterval(async () => {
+      try {
+        const response = await axios.get(`${baseURL}/upload-progress/${fileName}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setUploadProgress(response.data.progress); // Actualiza el progreso con el valor del backend
+
+        // Si la subida ha finalizado, detén el polling
+        if (response.data.progress >= 100) {
+          clearInterval(intervalId);
+          setIsUploading(false);
+          setUploadProgress(0);
+          fetchFiles(); // Actualizar la lista de archivos
+        }
+      } catch (error) {
+        console.error('Error obteniendo el progreso de subida', error);
+        clearInterval(intervalId); // Detener el polling si hay un error
+        setIsUploading(false);
+      }
+    }, 1000); // Hacer una consulta cada segundo
   };
 
   // Subir archivo seleccionado
@@ -44,17 +71,25 @@ const Dashboard = ({ token, handleLogout }) => {
     formData.append('file', file);
 
     try {
-      await axios.post(`${baseURL}/upload`, formData, {
+      setIsUploading(true); // Activar estado de subida
+      setUploadProgress(0);
+
+      // Subir archivo al backend
+      const response = await axios.post(`${baseURL}/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
-      alert("Archivo subido con éxito");
-      fetchFiles(); // Actualizar la lista de archivos
+
+      // Iniciar polling para verificar el progreso en el backend
+      pollUploadProgress(file.name);
+
+      alert('Archivo subido con éxito');
     } catch (error) {
-      console.error("Error subiendo el archivo", error);
-      alert("Error subiendo el archivo");
+      console.error('Error subiendo el archivo', error);
+      alert('Error subiendo el archivo');
+      setIsUploading(false); // Desactivar estado de subida en caso de error
     }
   };
 
@@ -69,26 +104,26 @@ const Dashboard = ({ token, handleLogout }) => {
 
       window.location.href = response.data.url;
     } catch (error) {
-      console.error("Error descargando el archivo", error);
-      alert("Error descargando el archivo");
+      console.error('Error descargando el archivo', error);
+      alert('Error descargando el archivo');
     }
   };
 
-// Eliminar archivo
-const deleteFile = async (fileName) => {
-  const cleanFileName = fileName.replace(/^uploads\//, ''); // Quitar el prefijo 'uploads/' si está presente
+  // Eliminar archivo
+  const deleteFile = async (fileName) => {
+    const cleanFileName = fileName.replace(/^uploads\//, ''); // Quitar el prefijo 'uploads/' si está presente
 
-  try {
-    await axios.delete(`${baseURL}/files/${cleanFileName}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    alert("Archivo eliminado");
-    fetchFiles(); // Actualizar la lista de archivos
-  } catch (error) {
-    console.error("Error eliminando el archivo", error);
-    alert("Error eliminando el archivo");
-  }
-};
+    try {
+      await axios.delete(`${baseURL}/files/${cleanFileName}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Archivo eliminado');
+      fetchFiles(); // Actualizar la lista de archivos
+    } catch (error) {
+      console.error('Error eliminando el archivo', error);
+      alert('Error eliminando el archivo');
+    }
+  };
 
   // Obtener archivos al cargar el componente
   useEffect(() => {
@@ -100,17 +135,32 @@ const deleteFile = async (fileName) => {
       {/* Barra de navegación */}
       <nav className="navbar">
         <h2>Bienvenido, {username}</h2> {/* Mostrar el nombre del usuario */}
-        <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
-        <button onClick={toggleURL} className="toggle-url-btn">
-          Cambiar a {baseURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com' ? 'Local' : 'Producción'}
-        </button> {/* Botón para cambiar entre URLs */}
+        <div className="nav-buttons">
+          <button onClick={toggleURL} className="toggle-url-btn">
+            Cambiar a {baseURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com' ? 'Local' : 'Producción'}
+            <span className="info-icon">ℹ️</span>
+            <div className="tooltip">
+              Cambia entre el entorno de desarrollo (local) y producción (Heroku).
+            </div>
+          </button>
+          <button onClick={handleLogout} className="logout-btn">
+            Cerrar Sesión
+          </button>
+        </div>
       </nav>
 
       <div className="content">
         <h2>Archivos Subidos</h2>
         <div className="upload-section">
           <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-          <button onClick={uploadFile} className="upload-btn">Subir archivo</button>
+          <button onClick={uploadFile} className="upload-btn" disabled={isUploading}>Subir archivo</button>
+          {isUploading && (
+            <div className="progress-bar-container">
+              <div className="progress-bar" style={{ width: `${uploadProgress}%` }}>
+                {uploadProgress}%
+              </div>
+            </div>
+          )}
         </div>
 
         <table className="files-table">
