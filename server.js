@@ -5,7 +5,7 @@ const AWS = require('aws-sdk');
 const cors = require('cors'); // Importar el paquete cors
 const multer = require('multer'); // Importar multer para manejar archivos
 const jwt = require('jsonwebtoken');
-const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
+const { uploadMultipart, getUploadProgress } = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
 const db = require('./db'); // Conexión a la base de datos
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
@@ -23,10 +23,12 @@ const s3 = new AWS.S3({
 app.use(express.json()); // Middleware para procesar JSON
 
 app.use(cors({
-    origin: '*',  // Permitir todas las solicitudes desde cualquier origen
+    origin: ['http://localhost:3001', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'],  // Permite ambos orígenes
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Si es necesario compartir cookies o credenciales
+    credentials: true,
 }));
+
+app.options('*', cors()); // Permite preflight requests
 
 // Configuración de multer para manejo de archivos en la memoria
 const upload = multer({
@@ -99,8 +101,10 @@ app.get('/dashboard', authenticateToken, (req, res) => {
 });
 
 // Ruta protegida para subir archivos
-// Se usa 'upload.single('file')' para manejar un archivo a la vez
 app.post('/upload', authenticateToken, upload.single('file'), uploadMultipart);
+
+// Ruta para obtener el progreso de la subida
+app.get('/upload-progress/:fileName', authenticateToken, getUploadProgress);  // Nueva ruta para obtener el progreso de la subida
 
 // Ruta para obtener la lista de archivos en S3
 app.get('/files', authenticateToken, (req, res) => {
