@@ -59,7 +59,7 @@ DB_PASSWORD=C84cdd5f30
 DB_PORT=3306
 DB_USER=admin
 JWT_SECRET=40Ad796277aI3hNCULjZAOru04hdDyYtcyqRxM
-
+```
 
 Instrucciones para Ejecutar el Proyecto
 
