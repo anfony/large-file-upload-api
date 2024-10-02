@@ -124,19 +124,20 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
         Key: `uploads/${fileName}`
     };
 
-    s3.getObject(params, (err, data) => {
-        if (err) {
-            console.error(err);
-            return res.status(404).json({ error: 'Archivo no encontrado' });
-        }
+    // Iniciar la descarga como un stream desde S3
+    const fileStream = s3.getObject(params).createReadStream();
 
-        // Establecer el tipo MIME y encabezados de descarga
-        res.setHeader('Content-Type', data.ContentType || 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        
-        // Enviar el archivo como respuesta
-        res.send(data.Body);  // Solo enviar una vez
+    // Establecer los encabezados para la descarga
+    fileStream.on('error', (err) => {
+        console.error('Error descargando el archivo desde S3', err);
+        return res.status(500).json({ error: 'Error descargando el archivo' });
     });
+
+    res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+
+    // Stream el archivo directamente al cliente
+    fileStream.pipe(res);
 });
 
 // Iniciar el servidor
