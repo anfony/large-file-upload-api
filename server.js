@@ -143,22 +143,23 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
 });
 
 // Ruta para eliminar archivos de S3
-app.delete('/files/:fileName', authenticateToken, async (req, res) => {
+app.delete('/files/:fileName', authenticateToken, (req, res) => {
     const fileName = req.params.fileName;
 
+    // Asegúrate de agregar el prefijo 'uploads/' al nombre del archivo.
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}` // La clave del archivo en S3
+        Key: `uploads/${fileName}`  // Verifica si 'uploads/' es el prefijo correcto.
     };
 
-    try {
-        const deleteCommand = new DeleteObjectCommand(params);
-        await s3.send(deleteCommand);
-        res.status(200).json({ message: 'Archivo eliminado correctamente' });
-    } catch (err) {
-        console.error("Error eliminando el archivo:", err);
-        res.status(500).json({ error: 'Error eliminando el archivo' });
-    }
+    s3.deleteObject(params, (err, data) => {
+        if (err) {
+            console.error("Error eliminando el archivo de S3:", err);
+            return res.status(500).json({ error: 'Error eliminando el archivo' });
+        }
+
+        res.status(200).json({ message: 'Archivo eliminado con éxito' });
+    });
 });
 
 // Iniciar el servidor

@@ -111,17 +111,18 @@ const Dashboard = ({ token, handleLogout }) => {
 
   // Eliminar archivo
   const deleteFile = async (fileName) => {
-    const cleanFileName = fileName.replace(/^uploads\//, ''); // Quitar el prefijo 'uploads/' si está presente
-
+    // Quitar el prefijo 'uploads/' del nombre del archivo
+    const cleanFileName = fileName.replace(/^uploads\//, '');
+  
     try {
       await axios.delete(`${baseURL}/files/${cleanFileName}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Archivo eliminado');
+      alert("Archivo eliminado");
       fetchFiles(); // Actualizar la lista de archivos
     } catch (error) {
-      console.error('Error eliminando el archivo', error);
-      alert('Error eliminando el archivo');
+      console.error("Error eliminando el archivo", error);
+      alert("Error eliminando el archivo");
     }
   };
 
