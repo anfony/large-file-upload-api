@@ -11,6 +11,9 @@ El proyecto está dividido en dos partes principales:
 
 ### Estructura de carpetas:
 
+
+```plaintext
+
 large-file-upload-api/
 │
 ├── frontend/           # Carpeta que contiene todo el código del frontend en React
@@ -29,6 +32,7 @@ large-file-upload-api/
 ├── package.json        # Dependencias del backend
 ├── README.md           # Documentación del proyecto
 └── ...
+```
 
 ## Funcionalidades
 
