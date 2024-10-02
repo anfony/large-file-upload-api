@@ -31,7 +31,8 @@ const Dashboard = ({ token, handleLogout }) => {
       const response = await axios.get(`${baseURL}/files`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setFiles(response.data);
+      console.log(response.data); // Verifica que sea un array
+      setFiles(response.data.files);
     } catch (error) {
       console.error('Error obteniendo los archivos', error);
     }
@@ -159,15 +160,21 @@ const Dashboard = ({ token, handleLogout }) => {
             </tr>
           </thead>
           <tbody>
-            {files.map((fileName) => (
-              <tr key={fileName}>
-                <td>{fileName}</td>
-                <td>
-                  <button onClick={() => downloadFile(fileName)}>Descargar</button>
-                  <button onClick={() => deleteFile(fileName)}>Eliminar</button>
-                </td>
+            {Array.isArray(files) && files.length > 0 ? (
+              files.map((fileName) => (
+                <tr key={fileName}>
+                  <td>{fileName}</td>
+                  <td>
+                    <button onClick={() => downloadFile(fileName)}>Descargar</button>
+                    <button onClick={() => deleteFile(fileName)}>Eliminar</button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="2">No hay archivos disponibles</td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
