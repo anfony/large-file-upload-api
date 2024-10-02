@@ -1,13 +1,13 @@
-require('dotenv').config(); // Cargar variables de entorno
+require('dotenv').config();
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
-const cors = require('cors'); // Importar el paquete cors
-const multer = require('multer'); // Importar multer para manejar archivos
+const cors = require('cors');
+const multer = require('multer');
 const jwt = require('jsonwebtoken');
-const { uploadMultipart, getUploadProgress } = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
-const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
-const db = require('./db'); // Conexión a la base de datos
+const { uploadMultipart, getUploadProgress } = require('./uploadFile');
+const authenticateToken = require('./authMiddleware');
+const db = require('./db');
 const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const app = express();
@@ -20,7 +20,7 @@ const s3 = new AWS.S3({
     region: process.env.AWS_REGION,
 });
 
-app.use(express.json()); // Middleware para procesar JSON
+app.use(express.json());
 
 app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:3001', 'https://serverfileslarges-9cfb943831a0.herokuapp.com'],
@@ -30,10 +30,10 @@ app.use(cors({
 
 app.options('*', cors()); // Permite preflight requests
 
-// Configuración de multer para manejo de archivos en la memoria
-const upload = multer({
-    storage: multer.memoryStorage(), // Los archivos se almacenan en memoria antes de subir a S3
-});
+// // Configuración de multer para manejo de archivos en la memoria
+// const upload = multer({
+//     storage: multer.memoryStorage(), // Los archivos se almacenan en memoria antes de subir a S3
+// });
 
 app.get('/', (req, res) => {
     res.status(200).send('API funcionando correctamente');
@@ -104,18 +104,18 @@ app.get('/dashboard', authenticateToken, (req, res) => {
 // app.post('/upload', authenticateToken, upload.single('file'), uploadMultipart);
 
 app.get('/generate-upload-url', authenticateToken, async (req, res) => {
-    const { fileName, fileType } = req.query; // El cliente enviará el nombre del archivo y el tipo
+    const { fileName, fileType } = req.query;
 
     const s3Params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}`, // Nombre del archivo en S3
-        Expires: 60, // URL válida por 60 segundos
+        Key: `uploads/${fileName}`,
+        Expires: 60,
         ContentType: fileType,
-        ACL: 'public-read' // Puedes ajustar esto según las políticas de acceso
+        ACL: 'public-read'
     };
 
     try {
-        const uploadUrl = s3.getSignedUrl('putObject', s3Params); // Generar la URL prefirmada
+        const uploadUrl = s3.getSignedUrl('putObject', s3Params);
         res.status(200).json({ uploadUrl });
     } catch (err) {
         console.error('Error generando URL prefirmada de S3', err);
@@ -124,14 +124,14 @@ app.get('/generate-upload-url', authenticateToken, async (req, res) => {
 });
 
 // Ruta para obtener el progreso de la subida
-app.get('/upload-progress/:fileName', authenticateToken, getUploadProgress);  // Nueva ruta para obtener el progreso de la subida
+app.get('/upload-progress/:fileName', authenticateToken, getUploadProgress);
 
 // Ruta para obtener la lista de archivos en S3
 app.get('/files', authenticateToken, (req, res) => {
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        MaxKeys: 10, // Puedes ajustar el número de archivos por página
-        ContinuationToken: req.query.token // Token de paginación desde el frontend
+        MaxKeys: 10,
+        ContinuationToken: req.query.token
     };
 
     s3.listObjectsV2(params, (err, data) => {
@@ -142,7 +142,7 @@ app.get('/files', authenticateToken, (req, res) => {
 
         res.json({
             files: data.Contents.map(file => file.Key),
-            nextToken: data.NextContinuationToken // Enviar el token de la siguiente página
+            nextToken: data.NextContinuationToken
         });
     });
 });
@@ -153,7 +153,7 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
         Key: `uploads/${fileName}`,
-        Expires: 60  // La URL prefirmada expirará en 60 segundos
+        Expires: 60
     };
 
     // Generar URL prefirmada para la descarga directa desde S3
@@ -171,15 +171,14 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
 app.delete('/files/:fileName', authenticateToken, async (req, res) => {
     const fileName = req.params.fileName;
 
-    // Asegúrate de agregar el prefijo 'uploads/' al nombre del archivo.
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `uploads/${fileName}` // Verifica si 'uploads/' es el prefijo correcto.
+        Key: `uploads/${fileName}`
     };
 
     // Verificar si el archivo existe
     try {
-        await s3.headObject(params).promise(); // Verifica si el archivo existe
+        await s3.headObject(params).promise();
     } catch (err) {
         console.error("El archivo no existe en S3:", err.message);
         return res.status(404).json({ error: 'El archivo no existe' });

@@ -31,7 +31,7 @@ const Dashboard = ({ token, handleLogout }) => {
       const response = await axios.get(`${baseURL}/files`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response.data); // Verifica que sea un array
+      console.log(response.data);
       setFiles(response.data.files);
     } catch (error) {
       console.error('Error obteniendo los archivos', error);
@@ -48,7 +48,6 @@ const Dashboard = ({ token, handleLogout }) => {
       setIsUploading(true);
       setUploadProgress(0);
 
-      // 1. Solicitar una URL prefirmada al backend
       const { data } = await axios.get(`${baseURL}/generate-upload-url`, {
         params: {
           fileName,
@@ -59,7 +58,6 @@ const Dashboard = ({ token, handleLogout }) => {
 
       const { uploadUrl } = data;
 
-      // 2. Subir el archivo directamente a S3 usando la URL prefirmada
       await axios.put(uploadUrl, file, {
         headers: {
           'Content-Type': fileType,
@@ -74,7 +72,6 @@ const Dashboard = ({ token, handleLogout }) => {
       setUploadProgress(0);
       setIsUploading(false);
 
-      // Actualizar la lista de archivos
       fetchFiles();
     } catch (error) {
       console.error('Error subiendo el archivo', error);

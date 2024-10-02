@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Importar iconos de react-icons
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Login.css'; // Importar el archivo de estilos
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);  // Estado para controlar si se muestra la contraseña
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +16,7 @@ const Login = ({ setToken }) => {
       const token = response.data.token;
 
       setToken(token);
-      localStorage.setItem('token', token);  // Guardar el token en localStorage
+      localStorage.setItem('token', token);
     } catch (error) {
       console.error('Error iniciando sesión', error);
       alert('Error iniciando sesión');
@@ -24,7 +24,7 @@ const Login = ({ setToken }) => {
   };
 
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);  // Alternar entre mostrar y ocultar la contraseña
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -39,7 +39,7 @@ const Login = ({ setToken }) => {
         />
         <div style={{ position: 'relative' }}>
           <input
-            type={showPassword ? "text" : "password"}  // Mostrar texto o contraseña según el estado
+            type={showPassword ? "text" : "password"}
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -54,7 +54,7 @@ const Login = ({ setToken }) => {
               cursor: 'pointer'
             }}
           >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}  {/* Ojo abierto o cerrado */}
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
           </span>
         </div>
         <button type="submit">Iniciar Sesión</button>

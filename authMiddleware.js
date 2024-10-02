@@ -1,17 +1,17 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Asegurarse de cargar el JWT_SECRET
+require('dotenv').config();
 
 // Middleware para verificar el token JWT
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];  // Extraer el token de 'Authorization'
+    const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) return res.sendStatus(401);  // Si no hay token, no autorizado
+    if (!token) return res.sendStatus(401);
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.sendStatus(403);  // Token inválido
+        if (err) return res.sendStatus(403);
         req.user = user;
-        next();  // Autenticación exitosa, continuar
+        next();
     });
 };
 

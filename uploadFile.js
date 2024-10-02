@@ -2,7 +2,7 @@ require('dotenv').config();
 const { S3Client, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand } = require('@aws-sdk/client-s3');
 const { NodeHttpHandler } = require('@smithy/node-http-handler');
 
-const uploadProgress = {}; // Guardará el progreso de subida por archivo
+const uploadProgress = {};
 
 // Crear el cliente S3
 const s3 = new S3Client({
