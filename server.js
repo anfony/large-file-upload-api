@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const uploadMultipart = require('./uploadFile');  // Ruta correcta donde esté tu archivo uploadFile.js
 const authenticateToken = require('./authMiddleware'); // Middleware para autenticación
 const db = require('./db'); // Conexión a la base de datos
+const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -136,6 +137,25 @@ app.get('/download/:fileName', authenticateToken, (req, res) => {
     });
 });
 
+// Ruta para eliminar archivos de S3
+app.delete('/files/:fileName', authenticateToken, (req, res) => {
+    const fileName = req.params.fileName;
+  
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: `uploads/${fileName}`, // El archivo a eliminar debe tener el prefijo 'uploads/'
+    };
+  
+    s3.deleteObject(params, (err, data) => {
+      if (err) {
+        console.error("Error eliminando el archivo de S3:", err);
+        return res.status(500).json({ error: 'Error eliminando el archivo' });
+      }
+  
+      res.status(200).json({ message: 'Archivo eliminado con éxito' });
+    });
+  });
+  
 
 // Iniciar el servidor
 app.listen(PORT, () => {

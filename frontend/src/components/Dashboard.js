@@ -7,6 +7,16 @@ const Dashboard = ({ token, handleLogout }) => {
   const [files, setFiles] = useState([]);
   const [file, setFile] = useState(null);
   const [username, setUsername] = useState(''); // Almacenar el nombre del usuario
+  const [baseURL, setBaseURL] = useState('https://serverfileslarges-9cfb943831a0.herokuapp.com'); // Estado de URL base
+
+  // Cambiar entre URLs de producción y local
+  const toggleURL = () => {
+    setBaseURL((prevURL) => 
+      prevURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com' 
+        ? 'http://localhost:3000' 
+        : 'https://serverfileslarges-9cfb943831a0.herokuapp.com'
+    );
+  };
 
   // Obtener el nombre del usuario desde el token
   useEffect(() => {
@@ -19,7 +29,7 @@ const Dashboard = ({ token, handleLogout }) => {
   // Obtener la lista de archivos subidos
   const fetchFiles = async () => {
     try {
-      const response = await axios.get('https://serverfileslarges-9cfb943831a0.herokuapp.com/files', {
+      const response = await axios.get(`${baseURL}/files`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFiles(response.data);
@@ -34,7 +44,7 @@ const Dashboard = ({ token, handleLogout }) => {
     formData.append('file', file);
 
     try {
-      await axios.post('https://serverfileslarges-9cfb943831a0.herokuapp.com/upload', formData, {
+      await axios.post(`${baseURL}/upload`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -50,42 +60,40 @@ const Dashboard = ({ token, handleLogout }) => {
 
   // Descargar archivo
   const downloadFile = async (fileName) => {
-    // Si el nombre del archivo incluye 'uploads/', lo quitamos
     const cleanFileName = fileName.replace(/^uploads\//, '');
-  
+
     try {
-      // Llamar a la API para obtener la URL prefirmada
-      const response = await axios.get(`https://serverfileslarges-9cfb943831a0.herokuapp.com/download/${cleanFileName}`, {
+      const response = await axios.get(`${baseURL}/download/${cleanFileName}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
-      // Redirigir al usuario a la URL prefirmada para la descarga directa desde S3
+
       window.location.href = response.data.url;
-  
     } catch (error) {
       console.error("Error descargando el archivo", error);
       alert("Error descargando el archivo");
     }
-  };  
-
-  // Eliminar archivo
-  const deleteFile = async (fileName) => {
-    try {
-      await axios.delete(`https://serverfileslarges-9cfb943831a0.herokuapp.com/files/${fileName}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      alert("Archivo eliminado");
-      fetchFiles(); // Actualizar la lista de archivos
-    } catch (error) {
-      console.error("Error eliminando el archivo", error);
-      alert("Error eliminando el archivo");
-    }
   };
+
+// Eliminar archivo
+const deleteFile = async (fileName) => {
+  const cleanFileName = fileName.replace(/^uploads\//, ''); // Quitar el prefijo 'uploads/' si está presente
+
+  try {
+    await axios.delete(`${baseURL}/files/${cleanFileName}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    alert("Archivo eliminado");
+    fetchFiles(); // Actualizar la lista de archivos
+  } catch (error) {
+    console.error("Error eliminando el archivo", error);
+    alert("Error eliminando el archivo");
+  }
+};
 
   // Obtener archivos al cargar el componente
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [baseURL]); // Ejecutar cuando la URL base cambie
 
   return (
     <div className="dashboard-container">
@@ -93,6 +101,9 @@ const Dashboard = ({ token, handleLogout }) => {
       <nav className="navbar">
         <h2>Bienvenido, {username}</h2> {/* Mostrar el nombre del usuario */}
         <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
+        <button onClick={toggleURL} className="toggle-url-btn">
+          Cambiar a {baseURL === 'https://serverfileslarges-9cfb943831a0.herokuapp.com' ? 'Local' : 'Producción'}
+        </button> {/* Botón para cambiar entre URLs */}
       </nav>
 
       <div className="content">
