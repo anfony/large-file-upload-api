@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import { BrowserRouter as Router, Route, Switch, Redirect } from 'react-router-dom';
 
 function App() {
   const [token, setToken] = useState(null);
@@ -22,20 +22,19 @@ function App() {
 
   return (
     <Router>
-      <Switch>
+      <Routes>
         {/* Ruta para el login */}
-        <Route path="/login">
-          {token ? <Redirect to="/dashboard" /> : <Login setToken={setToken} />}
-        </Route>
+        <Route path="/login" element={<Login setToken={setToken} />} />
 
         {/* Ruta para el dashboard */}
-        <Route path="/dashboard">
-          {token ? <Dashboard token={token} handleLogout={handleLogout} /> : <Redirect to="/login" />}
-        </Route>
+        <Route
+          path="/dashboard"
+          element={token ? <Dashboard token={token} handleLogout={handleLogout} /> : <Navigate to="/login" />}
+        />
 
-        {/* Ruta por defecto */}
-        <Redirect from="/" to={token ? "/dashboard" : "/login"} />
-      </Switch>
+        {/* Redirigir a /login si no hay un token */}
+        <Route path="*" element={<Navigate to={token ? "/dashboard" : "/login"} />} />
+      </Routes>
     </Router>
   );
 }

@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './Login.css'; // Importar el archivo de estilos
-import { useHistory } from 'react-router-dom'; // Importar useHistory
+import { useNavigate } from 'react-router-dom'; // Importar useNavigate
 
 const Login = ({ setToken }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const history = useHistory(); // Instancia de useHistory para redirigir
+  const navigate = useNavigate(); // Instancia de useNavigate para redirigir
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +21,7 @@ const Login = ({ setToken }) => {
       localStorage.setItem('token', token);
 
       // Redirigir al Dashboard después de iniciar sesión
-      history.push('/dashboard');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error iniciando sesión', error);
       alert('Error iniciando sesión');
